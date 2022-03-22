@@ -1,4 +1,4 @@
 library(testthat)
-library(TMBtools)
+library(testR)
 
-test_check("TMBtools")
+test_check("testR")
