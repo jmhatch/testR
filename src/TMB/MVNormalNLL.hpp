@@ -1,4 +1,4 @@
-/// @file MVNormalNLL.hpp
+/// @file MVNormalNLL.hpp (from admb-project/tmb-examples)
 
 #ifndef MVNormalNLL_hpp
 #define MVNormalNLL_hpp
@@ -9,16 +9,47 @@
 /// Negative log-likelihood of the multivariate normal distribution.
 template<class Type>
 Type MVNormalNLL(objective_function<Type>* obj) {
+  
+  // data
+  DATA_MATRIX(X);
+  int n = X.rows();
+  int p = X.cols();
+  
+  // parameters
+  PARAMETER_VECTOR(mu);
+  PARAMETER_VECTOR(sd);
+  PARAMETER(rho);
+  
+  // covariance
+  matrix<Type> Sigma(p, p);
+  Sigma(0, 0) = sd(0) * sd(0);
+  Sigma(0, 1) = sd(0) * sd(1) * rho;
+  Sigma(1, 1) = sd(1) * sd(1);
+  Sigma(1, 0) = sd(0) * sd(1) * rho;
+  
+  // allocate space
+  vector<Type> residual(p);
+  
+  // accumulator
+  Type neglogL = 0.0;
+  
+  // mvnormal nll
   using namespace density;
-  matrix<Type> Sigma(3,3);
-  Sigma.fill(0.1);             // Fill the whole matrix
-  Sigma.diagonal() *= 10.0;    // Multiply diagonal by 10 to positive definite Sigma
-  vector<Type> x0(3);          // Point of evaluation
-  x0.fill(0.0);                // Initialize x0 to be zero
-  MVNORM_t<Type> N_0_Sigma(Sigma);   // N_0_Sigma is now a Distribution
-  vector<Type> res(3);
-  res = N_0_Sigma(x0);         // Evaluates (neg. log) density at x
-  return res.sum();
+  MVNORM_t<Type> neg_log_dmvnorm(Sigma);
+  
+  // loop thru data
+  for(int i = 0; i < n; i++)
+  {
+    residual = vector<Type>(X.row(i)) - mu;
+    neglogL += neg_log_dmvnorm(residual);
+  }
+  
+  REPORT(Sigma);
+  REPORT(sd);
+  REPORT(rho);
+  
+  return neglogL;
+  
 }
 
 #undef TMB_OBJECTIVE_PTR

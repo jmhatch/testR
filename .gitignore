@@ -6,3 +6,5 @@
 *.o
 *.dll
 *.def
+*.Rproj
+src/TMB/old
