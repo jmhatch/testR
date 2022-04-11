@@ -3,3 +3,5 @@
 ^\.git$
 ^\.gitignore$
 ^src/TMB/old$
+^README.md$
+^\.Rhistory$
